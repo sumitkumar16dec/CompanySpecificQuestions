@@ -1,3 +1,5 @@
+https://www.geeksforgeeks.org/problems/boundary-traversal-of-binary-tree/1
+
 Given a root of Binary Tree, perform the boundary traversal of the tree. 
 The boundary traversal is the process of visiting the boundary nodes of the binary tree in the anticlockwise direction, starting from the root.
 The boundary of a binary tree is the concatenation of the root, the left boundary, the leaves ordered from left-to-right, and the reverse order of the right boundary.
@@ -101,5 +103,101 @@ int main(){
 }
 
 
-Optimal Solution :
+Optimal Solution (Implemented Morris traversal in place of recursion) :
 
+TC: O(H) + O(N) + O(H)= O(N)
+SC: O(N) (due to output) + O(H) (temp vector) can say around O(1) if output is ignored
+
+#include<bits/stdc++.h>
+using namespace std;
+
+struct Node{
+    int data;
+    Node *left;
+    Node *right;
+    
+    Node(int data){
+        this->data= data;
+        this->left= nullptr;
+        this->right= nullptr;
+    }
+};
+
+bool isLeaf(Node *root){
+    return (root->left==nullptr && root->right==nullptr);
+}
+
+void leftside(Node *root, vector<int> &res){
+    Node *cur= root->left;
+    while(cur){
+        if(!isLeaf(cur)) res.push_back(cur->data);
+        if(cur->left) cur= cur->left;
+        else cur= cur->right;
+    }
+}
+
+void leafnodes(Node *root, vector<int> &res){
+    Node *cur= root;
+    while(cur){
+        if(cur->left==nullptr){
+            if(isLeaf(cur)) res.push_back(cur->data);
+            cur= cur->right;
+        }
+        else{
+            Node *prev= cur->left;
+            while(prev->right!=nullptr && prev->right!=cur) prev= prev->right;
+            if(prev->right==nullptr){
+                prev->right= cur;
+                cur= cur->left;
+            }
+            else{
+                prev->right= nullptr;
+                if(isLeaf(prev)) res.push_back(prev->data);
+                cur= cur->right;
+            }
+        }
+    }
+}
+
+void rightside(Node *root, vector<int> &res){
+    Node *cur= root->right;
+    vector<int> temp;
+
+    while(cur){
+        if(!isLeaf(cur)) temp.push_back(cur->data);
+        if(cur->right) cur= cur->right;
+        else cur= cur->left;
+    }
+    
+    for(int i=temp.size()-1;i>=0;i--){
+        res.push_back(temp[i]);
+    }
+}
+
+vector<int> func(Node *root){
+    vector<int> res;
+    if(root==nullptr) return res;
+    
+    if(!isLeaf(root)) res.push_back(root->data);
+    leftside(root, res);
+    leafnodes(root, res);
+    rightside(root, res);
+    
+    return res;
+}
+
+int main(){
+    Node *root= new Node(1);
+    root->left= new Node(2);
+    root->right= new Node(3);
+    root->left->left= new Node(4);
+    root->left->right= new Node(5);
+    root->right->left= new Node(6);
+    root->right->right= new Node(7);
+    
+    vector<int> res= func(root);
+    for(int i: res){
+        cout<<i<<" ";
+    }
+    return 0;
+}
